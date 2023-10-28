@@ -42,12 +42,12 @@
 #               1) The user has to hardcode:
 #                       i) PATH(line 64)     =   path to CSV file
 #                      ii) casestr(line 68)  =   the CASESTR values they're interested in
-#                     iii) cref(line 75)     =   the columns from the CSV file that they're interested in
-#                      iv) href(line 80)     =   the parameter data from the HTML file that they're interested in
-#               2) Lines 162 and 163 mark a CSV-HTML data pair as mismatched if one doesn't have a unit but the other
+#                     iii) cref(line 74)     =   the columns from the CSV file that they're interested in
+#                      iv) href(line 79)     =   the parameter data from the HTML file that they're interested in
+#               2) Lines 158 and 159 mark a CSV-HTML data pair as mismatched if one doesn't have a unit but the other
 #                  one does.
-#               3) Lines 95 - 108 alert the user to potential missing files or typos in user provided fields
-#               4) All saved CSV files(lines 185- 189) are saved in the same folder as the corresponding HTML file and
+#               3) Lines 94 - 107 alert the user to potential missing files or typos in user provided fields
+#               4) All saved CSV files(lines 179- 184) are saved in the same folder as the corresponding HTML file and
 #                  have the same name as the corresponding HTML file but with the file extension '.csv
 #
 ########################################################################################################################
@@ -66,7 +66,6 @@ folder = os.path.dirname(PATH)
 
 # Enter list of "CASESTR" you'd like to check
 casestr = ['Case_041', 'Case_042', 'Case_043', 'Case_044', 'Case_045', 'Case_046']
-
 
 ########################################################################################################################
 # NOTE: For this code to work properly, you must insert href values in the same order as their corresponding cref values
@@ -112,28 +111,25 @@ cdf = pd.read_csv(PATH, sep=',')
 cdf = cdf[cdf.columns[cdf.columns.isin(cref)]]
 
 
-# Build dataframe from .html file
-def buildHtmldataframe(eleme):
-    hdata = []
-    html_doc = open(os.path.join(folder, eleme), 'r')
-    soup = BeautifulSoup(html_doc, 'html.parser')
-    # print(soup.get_text())
-    for l in href:
-        if l != 'CASESTR':
-            hdelim = l + '\nTypeSCALAR'
-            hdatum = soup.get_text()
-            hdatum = hdatum.split(hdelim)[1]
-            hdatum = hdatum.split('\nValue')[1]
-            hdatum = hdatum.split('\n')[0]
-            hdata.append(hdatum)
-    cstr = (eleme.split('_Summary.html'))[0]
-    hdata.insert(0, cstr)
-    return pd.DataFrame(index=cref, data=hdata)
-
-
 def main():
-    i = 0
     href.insert(0, 'CASESTR')
+
+    # Build dataframe from .html file
+    def buildHtmldataframe(eleme):
+        hdata = []
+        html_doc = open(os.path.join(folder, eleme), 'r')
+        soup = BeautifulSoup(html_doc, 'html.parser')
+        for l in href:
+            if l != 'CASESTR':
+                hdelim = l + '\nTypeSCALAR'
+                hdatum = soup.get_text()
+                hdatum = hdatum.split(hdelim)[1]
+                hdatum = hdatum.split('\nValue')[1]
+                hdatum = hdatum.split('\n')[0]
+                hdata.append(hdatum)
+        cstr = (eleme.split('_Summary.html'))[0]
+        hdata.insert(0, cstr)
+        return pd.DataFrame(index=cref, data=hdata)
 
     # Compare decimal values
     def compareDecimals(cvalue, hvalue):
@@ -146,8 +142,8 @@ def main():
         else:
             return 1
 
-    # Compare dataframes, and returns "mismatch" dataframe consisting of 1s and 0s. 1 if corresponding data values do not
-    # match and 0 if they do.
+    # Compare dataframes, and returns "mismatch" dataframe consisting of 1s and 0s. 1 if corresponding data values do
+    # not match and 0 if they do.
     # The logic for why we are using 1 to represent mismatches is that this dataframe answers the question, "are these
     # values mismatched?"
     def compareDataFrames(cdf, cref, hdf):
@@ -171,7 +167,6 @@ def main():
                     'CASESTR-' + str(cdf.iat[0, 0]) + ', has mismatches in the following column-\n' + str(cref[i]))
         return pd.DataFrame(index=cref, data=misdata).T, misdata
 
-
     # Iterates over list of HTML file and builds hdf
     for el in file_ls:
         # Builds dataframe for ONE HTML file.
@@ -189,5 +184,5 @@ def main():
         resdf.to_csv(saved_file)
 
 
-if __name__ =="__main__":
+if __name__ == "__main__":
     main()
