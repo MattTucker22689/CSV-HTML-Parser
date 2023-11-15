@@ -38,7 +38,7 @@
 
 ########################################################################################################################
 #
-# Notes about QuickSilvers CSV-HTML Parser:
+# Notes about this CSV-HTML Parser:
 #               1) The user has to hardcode:
 #                       i) PATH(line 64)     =   path to CSV file
 #                      ii) casestr(line 68)  =   the CASESTR values they're interested in
